@@ -12,4 +12,13 @@ public class GetRequestTest {
                 .andReturn();  //Просим вернуть нам результат
         response.prettyPrint();//Распечатываем текст ответа в удобном формате
     }
+
+    @Test
+    public void testGetRequestTest_2(){
+        Response response = RestAssured
+                .get("https://playground.learnqa.ru/api/get_json") //Создание Get запроса на наш адрес
+                .andReturn();  //Просим вернуть нам результат
+        response.prettyPrint();//Распечатываем текст ответа в удобном формате
+    }
 }
+
