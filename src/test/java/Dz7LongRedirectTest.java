@@ -11,6 +11,7 @@ public class Dz7LongRedirectTest {
         String currentUrl = "https://playground.learnqa.ru/api/long_redirect";
         int statusCode;
         Response response;
+        int redirectCount = 0;
 
         do {
             response = RestAssured
@@ -30,12 +31,15 @@ public class Dz7LongRedirectTest {
             System.out.println();
 
             // Сохраняем ссылку из редиректа для следующей итерации
-            currentUrl = locationHeader;
-
+            // и увеличивааем счетчик редиреков пока статус !=200
+            if (statusCode != 200) {
+                currentUrl = locationHeader;
+                redirectCount++;
+            }
         } while (statusCode != 200);
 
         System.out.println("Финальный URL (200 OK): " + currentUrl);
-
+        System.out.println("Всего редиректов: " + redirectCount);
     }
 }
 
