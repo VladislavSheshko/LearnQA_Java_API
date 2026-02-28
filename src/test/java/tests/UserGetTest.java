@@ -21,10 +21,14 @@ public class UserGetTest extends BaseTestCase {
                 .andReturn();
 
         System.out.println(responseUserData.asString());
-        Assertions.assertJsonHasField(responseUserData, "username");
-        Assertions.assertJsonHasNotField(responseUserData, "firstName");
-        Assertions.assertJsonHasNotField(responseUserData, "lastName");
-        Assertions.assertJsonHasNotField(responseUserData, "email");
+
+        String[] visibleFields = {"username"};
+        Assertions.assertJsonHasFields(responseUserData, visibleFields);
+
+        String[] hiddenFields = {"firstName", "lastName", "email"};
+        for (String field : hiddenFields) {
+            Assertions.assertJsonHasNotField(responseUserData, field);
+        }
     }
 
     @Test
@@ -33,11 +37,8 @@ public class UserGetTest extends BaseTestCase {
         authData.put("email", "vinkotov@example.com");
         authData.put("password","1234");
 
-        Response responseGetAuth = RestAssured
-                .given()
-                .body(authData)
-                .post("https://playground.learnqa.ru/api/user/login")
-                .andReturn();
+        String userEndpoint = "https://playground.learnqa.ru/api/user/login";
+        Response responseGetAuth = apiCoreRequests.makePostRequest(userEndpoint, authData);
 
         System.out.println("Полученные данные авторизации:");
         System.out.println(responseGetAuth.asString());
@@ -45,12 +46,8 @@ public class UserGetTest extends BaseTestCase {
         String header = this.getHeader(responseGetAuth, "x-csrf-token");
         String cookie = this.getCookie(responseGetAuth, "auth_sid");
 
-        Response responseUserData = RestAssured
-                .given()
-                .header("x-csrf-token", header)
-                .cookie("auth_sid", cookie)
-                .get("https://playground.learnqa.ru/api/user/2")
-                .andReturn();
+        String userEndpointTwo = "https://playground.learnqa.ru/api/user/2";
+        Response responseUserData = apiCoreRequests.makeGetRequest(userEndpointTwo, header, cookie);
 
         System.out.println("Полученные данные пользователя:");
         System.out.println(responseUserData.asString());
