@@ -7,15 +7,28 @@ import lib.ApiCoreRequests;
 import lib.Assertions;
 import lib.BaseTestCase;
 import lib.DataGenerator;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
+import io.qameta.allure.*;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
+
+@Epic("User API")
+@Feature("PUT /api/user/{id} - Edit User")
+@Story("User profile editing scenarios")
+@Severity(SeverityLevel.CRITICAL)
 
 public class UserEditTest extends BaseTestCase {
     private final ApiCoreRequests apiCoreRequests = new ApiCoreRequests();
 
     @Test
+    @DisplayName("PUT /api/user/{id} - успешное редактирование своего профиля")
+    @Description("Создание → логин → PUT firstName → GET проверка. " +
+            "Владелец может изменить своё имя → JSON содержит новое значение")
+    @Story("Successful profile edit")
+    @Severity(SeverityLevel.BLOCKER)
+    @Tag("smoke")
     public void testEditJustCreatedTest() {
     //GENERATE USER
         Map<String, String> userData = DataGenerator.getRegistrationData();
@@ -61,12 +74,15 @@ public class UserEditTest extends BaseTestCase {
                 .get("https://playground.learnqa.ru/api/user/" + userId)
                 .andReturn();
 
-        System.out.println(responseUserData.asString());
-
         Assertions.assertJsonByName(responseUserData, "firstName", newName);
     }
 
     @Test
+    @DisplayName("PUT /api/user/{id} - редактирование БЕЗ авторизации → 400")
+    @Description("Попытка PUT без token/cookie → 400 Bad Request")
+    @Story("Authorization validation")
+    @Severity(SeverityLevel.CRITICAL)
+    @Tag("security")
     public void testEditNotAuth() {
         Map<String, String> userData = DataGenerator.getRegistrationData();
         JsonPath responseCreate = RestAssured
@@ -81,11 +97,16 @@ public class UserEditTest extends BaseTestCase {
                 .put("https://playground.learnqa.ru/api/user/" + userId)
                 .andReturn();
 
-        System.out.println(response.asString());
         Assertions.assertResponseCodeEquals(response, 400);
     }
 
     @Test
+    @DisplayName("PUT /api/user/{id} - чужой пользователь НЕ МОЖЕТ редактировать → 400")
+    @Description("vinkotov@example.com пытается отредактировать чужой профиль → 400 Access Denied")
+    @Story("Role-Based Access Control restrictions")
+    @Severity(SeverityLevel.CRITICAL)
+    @Tag("security")
+    @Tag("RoleBasedAccessControl")
     public void testEditDifferentUser() {
         // Создаем пользователя
         Map<String, String> testUserData = DataGenerator.getRegistrationData();
@@ -95,7 +116,6 @@ public class UserEditTest extends BaseTestCase {
                 .post("https://playground.learnqa.ru/api/user/")
                 .jsonPath();
         String testUserId = responseCreateTestUser.getString("id");
-        System.out.println(testUserId);
 
         // Логинимся другим пользователем
         Map<String, String> authData = Map.of(
@@ -113,11 +133,15 @@ public class UserEditTest extends BaseTestCase {
                 this.getCookie(responseAuth, "auth_sid"),
                 editData
         );
-        System.out.println(response.asString());
         Assertions.assertResponseCodeEquals(response, 400);
     }
 
     @Test
+    @DisplayName("PUT /api/user/{id} - невалидный email → 400")
+    @Description("Замена email на 'invalid-email.com' → 400 'Invalid email format'")
+    @Story("Email validation")
+    @Severity(SeverityLevel.NORMAL)
+    @Tag("regression")
     public void testEditInvalidEmail() {
         Map<String, String> userData = DataGenerator.getRegistrationData();
         JsonPath responseCreate = RestAssured
@@ -149,6 +173,10 @@ public class UserEditTest extends BaseTestCase {
     }
 
     @Test
+    @DisplayName("PUT /api/user/{id} - firstName слишком короткое → 400")
+    @Description("firstName='A' (1 символ) → 400 'too short'")
+    @Story("Field length validation")
+    @Severity(SeverityLevel.NORMAL)
     public void testEditTooShortFirstName() {
         Map<String, String> userData = DataGenerator.getRegistrationData();
         JsonPath responseCreate = RestAssured

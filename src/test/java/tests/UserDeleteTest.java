@@ -7,15 +7,29 @@ import lib.ApiCoreRequests;
 import lib.Assertions;
 import lib.BaseTestCase;
 import lib.DataGenerator;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.DisplayName;
 import java.util.HashMap;
 import java.util.Map;
+import io.qameta.allure.*;
+
+@Epic("User API")
+@Feature("DELETE /api/user/{id} - User Deletion")
+@Story("User deletion scenarios")
+@Severity(SeverityLevel.CRITICAL)
 
 public class UserDeleteTest extends BaseTestCase {
     private final ApiCoreRequests apiCoreRequests = new ApiCoreRequests();
 
     @Test
+    @DisplayName("DELETE /api/user/2 - защищённый тестовый пользователь → 400")
+    @Description("Попытка удалить системного пользователя ID=2 (vinkotov@example.com) → " +
+            "400 'do not delete test users 1,2,3,4,5'")
+    @Story("Protected test users")
+    @Severity(SeverityLevel.CRITICAL)
+    @Tag("smoke")
+    @Tag("security")
     public void testDeleteUserFail() {
         // Логинимся пользователем с ID 2
         Map<String, String> authData = Map.of(
@@ -34,12 +48,17 @@ public class UserDeleteTest extends BaseTestCase {
                 this.getCookie(responseAuth, "auth_sid")
         );
 
-        System.out.println(response.asString());
         Assertions.assertResponseCodeEquals(response, 400);
         Assertions.assertResponseTextEquals(response, "{\"error\":\"Please, do not delete test users with ID 1, 2, 3, 4 or 5.\"}");
     }
 
     @Test
+    @DisplayName("DELETE /api/user/{id} - успешное удаление своего пользователя → 200 + GET 404")
+    @Description("Создание → логин → DELETE → GET проверка (404 'User not found'). " +
+            "Полное подтверждение удаления")
+    @Story("Successful deletion")
+    @Severity(SeverityLevel.BLOCKER)
+    @Tag("smoke")
     public void testDeleteUserSuccess() {
         Map<String, String> userData = DataGenerator.getRegistrationData();
         JsonPath responseCreate = RestAssured
@@ -64,7 +83,6 @@ public class UserDeleteTest extends BaseTestCase {
                 this.getCookie(responseAuth, "auth_sid")
         );
 
-        System.out.println(response.asString());
         Assertions.assertResponseCodeEquals(response, 200);
         Assertions.assertResponseTextEquals(response, "{\"success\":\"!\"}");
 
@@ -74,12 +92,18 @@ public class UserDeleteTest extends BaseTestCase {
                 this.getCookie(responseAuth, "auth_sid")
         );
 
-        System.out.println(responseUser.asString());
         Assertions.assertResponseCodeEquals(responseUser, 404);
         Assertions.assertResponseTextEquals(responseUser, "User not found");
     }
 
     @Test
+    @DisplayName("DELETE /api/user/{id} - чужой пользователь НЕ МОЖЕТ удалить → 400")
+    @Description("vinkotov@example.com (ID=2) пытается удалить созданного пользователя → " +
+            "400 'do not delete test users'")
+    @Story("Role-Based Access Control restrictions")
+    @Severity(SeverityLevel.CRITICAL)
+    @Tag("security")
+    @Tag("RoleBasedAccessControl")
     public void testDeleteUserForbiddenDifferentUser() {
         Map<String, String> userData = DataGenerator.getRegistrationData();
         JsonPath responseCreate = RestAssured
@@ -105,7 +129,6 @@ public class UserDeleteTest extends BaseTestCase {
                 this.getCookie(responseAuth, "auth_sid")
         );
 
-        System.out.println(response.asString());
         Assertions.assertResponseCodeEquals(response, 400);
         Assertions.assertResponseTextEquals(response, "{\"error\":\"Please, do not delete test users with ID 1, 2, 3, 4 or 5.\"}");
     }
