@@ -96,6 +96,7 @@ public class UserEditTest extends BaseTestCase {
                 .jsonPath();
         String testUserId = responseCreateTestUser.getString("id");
         System.out.println(testUserId);
+
         // Логинимся другим пользователем
         Map<String, String> authData = Map.of(
                 "email", "vinkotov@example.com",
