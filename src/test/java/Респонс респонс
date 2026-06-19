@@ -50,7 +50,27 @@ String id = RestAssured
     .body()
     .path("data.id");
 
-    // Или через JsonPath
+Пример использования
+    // Получаем ID созданного заказа для следующих тестов
+    String orderId = RestAssured
+        .given()
+        .body(newOrder)
+        .post("/api/orders")
+        .then()
+        .statusCode(201)              // проверяем успех
+        .extract()
+        .path("id");                   // извлекаем только id
+
+    // Дальше используем orderId
+    RestAssured.given()
+        .pathParam("id", orderId)
+        .get("/api/orders/{id}")
+        .then()
+        .statusCode(200);
+
+
+
+    // Или через JsonPath (современный .extract().jsonPath())
     JsonPath jsonPath = RestAssured
         .given()
         .get("/api/hello")
@@ -58,3 +78,30 @@ String id = RestAssured
         .statusCode(200)
         .extract()
         .jsonPath();
+
+        String id = jsonPath.get("data.id");
+        int count = jsonPath.getInt("data.count");
+        List<String> names = jsonPath.getList("items[*].name", String.class);
+
+
+    Полный разбор ответа
+
+Response response = RestAssured
+    .given()
+    .body(newOrder)
+    .post("/api/orders")
+    .andReturn();
+
+// Проверка ВСЕГО:
+assertEquals(201, response.getStatusCode());
+assertEquals("application/json", response.getHeader("Content-Type"));
+assertTrue(response.getCookie("session").length() > 0);
+response.prettyPrint();
+
+// Извлечение нескольких значений:
+String orderId = response.path("id");
+String status = response.path("status");
+String customer = response.path("customer.name");
+
+// Конвертация в POJO:
+Order order = response.as(Order.class);
