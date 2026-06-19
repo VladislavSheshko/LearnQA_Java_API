@@ -1,0 +1,30 @@
+JsonPath response
+Можно только извлекать данные из JSON:
+
+// Извлечение значений
+response.get("data.id");                    // String
+response.getInt("data.id");                 // int
+response.getList("items.name", String.class); // List<String>
+
+// Проверка через AssertJ/Hamcrest
+assertThat(response.get("name")).isEqualTo("John");
+assertThat(response.getString("email")).contains("test");
+
+// ❌ НЕЛЬЗЯ получить статус, headers, cookies из JsonPath
+response.getStatusCode();  // Error!
+response.getHeader("X");   // Error!
+response.prettyPrint();    // Error!
+
+
+Когда использовать .jsonPath()
+
+JsonPath response = RestAssured
+    .given()
+    .queryParams(params)
+    .get("https://playground.learnqa.ru/api/hello")
+    .jsonPath();
+
+// Только извлечение данных из JSON body:
+String name = response.get("data.name");
+int id = response.getInt("data.id");
+List<String> items = response.getList("items[*].name", String.class);

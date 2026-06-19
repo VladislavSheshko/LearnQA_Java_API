@@ -1,0 +1,60 @@
+Можно проверять:
+
+// Статус и статус-лайн
+response.getStatusCode();           // 200
+response.getStatusLine();           // "HTTP/1.1 200 OK"
+
+// Headers
+response.getHeader("Content-Type");
+response.getHeaders();              // все headers
+
+// Cookies
+response.getCookies();
+response.getCookie("session_id");
+
+// Body (как строка)
+response.getBody();                 // строка JSON
+response.prettyPrint();             // красивый вывод в консоль [web:2]
+
+// Извлечение через path
+response.path("data.id");           // String
+response.getBody().getPath("name"); // через JsonPath внутри
+
+Когда использовать
+
+//Response response = RestAssured
+                      .given()
+                      .queryParams(params)
+                      .get("https://playground.learnqa.ru/api/hello")
+                      .andReturn();
+
+                  // Нужно проверить:
+                  response.getStatusCode();                    // статус 200/404
+                  response.getHeader("Content-Type");          // headers
+                  response.getCookie("token");                 // cookies
+                  response.prettyPrint();                      // вывод всего body в консоль
+                  response.path("data.id");                    // извлечение значений
+
+Идеально для: Smoke тестов, проверки headers/status, когда нужен полный доступ к ответу
+
+В современных тестах (RestAssured 4.x+) чаще используют:
+
+// Извлекаем только что нужно
+String id = RestAssured
+    .given()
+    .queryParams(params)
+    .get("/api/hello")
+    .then()
+    .statusCode(200)
+    .extract()
+    .body()
+    .path("data.id");
+
+    // Или через JsonPath
+    JsonPath jsonPath = RestAssured
+        .given()
+        .get("/api/hello")
+        .then()
+        .statusCode(200)
+        .extract()
+        .jsonPath();

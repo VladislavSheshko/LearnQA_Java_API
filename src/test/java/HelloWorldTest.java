@@ -21,6 +21,7 @@ public class HelloWorldTest {
         Map<String, String> params = new HashMap<>();
         params.put("name", "Vladislav");
 
+        //Полный ответ: статус, headers, cookies, body (JSON как строка)
         Response response = RestAssured
                 .given()
                 .queryParams(params)
@@ -37,6 +38,7 @@ public class HelloWorldTest {
         Map<String, String> params = new HashMap<>();
         params.put("name", "Vladislav");
 
+        //Только извлечённый JSON: объект для работы с телом ответа как структурными данными
         JsonPath response = RestAssured
                 .given()
                 .queryParams(params)
